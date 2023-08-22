@@ -1,7 +1,8 @@
 import nltk
 import nltk.corpus
 import pandas as pd
-import openai
+import boto3
+import json
 import config
 import numpy
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -12,7 +13,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
-openai.api_key = config.OPEN_AI_KEY
+bedrock = boto3.client('bedrock' , 'us-west-2', endpoint_url='https://bedrock.us-west-2.amazonaws.com')
 
 def preprocess_text(text):
     # Tokenize the text
@@ -27,17 +28,13 @@ def preprocess_text(text):
     return processed_text
 
 def get_sentiment(text):
-    final_prompt = "Can you say whether the following text  contains content that must be moderated? Example of that content include but not limited to sexual terms, hate, violence, and weapons. Your answer should be POSITIVE for content that you feel should be moderated or that woudl go against the majority of policies for content distribution and NEGATIVE for content that is good.  It is not a defintive assessement. It is more a likelyhood to happen. The text is:" + "\n\n" +  text    
-    # Define the system message
-    system_msg = 'You are a content moderator.'
-    # Define the user message
-    user_msg = final_prompt
-    # Create a dataset using GPT
-    response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
-                                            messages=[{"role": "system", "content": system_msg},
-                                             {"role": "user", "content": user_msg}])
+    body = json.dumps({"inputText": "Can you say whether the following text  contains content that must be moderated? Example of that content include but not limited to sexual terms, hate, violence, and weapons. Your answer should be POSITIVE for content that you feel should be moderated or that woudl go against the majority of policies for content distribution and NEGATIVE for content that is good.  It is not a defintive assessement. It is more a likelyhood to happen. The text is:\n\n" + text})
+    modelId = 'amazon.titan-tg1-large'
+    response = bedrock.invoke_model(body=body, modelId=modelId)
+    response_body = json.loads(response.get('body').read())
 
-    ret_str = response["choices"][0]["message"]["content"]
+    ret_str = response_body.get('results')[0].get('outputText')
+
     moderated = 0
     if "positive" in ret_str.lower():
             moderated= 1
