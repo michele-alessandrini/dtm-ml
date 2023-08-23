@@ -34,7 +34,7 @@ def get_sentiment(text):
     # Define the user message
     user_msg = final_prompt
     # Create a dataset using GPT
-    response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
+    response = openai.ChatCompletion.create(model="ft:gpt-3.5-turbo-0613:atex-global-media::7qgvIMCk",
                                             messages=[{"role": "system", "content": system_msg},
                                              {"role": "user", "content": user_msg}])
 
