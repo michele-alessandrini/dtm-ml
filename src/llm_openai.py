@@ -27,9 +27,9 @@ def preprocess_text(text):
     return processed_text
 
 def get_sentiment(text):
-    final_prompt = "Can you say whether the following text  contains content that must be moderated? Example of that content include but not limited to sexual terms, hate, violence, and weapons. Your answer should be POSITIVE for content that you feel should be moderated or that woudl go against the majority of policies for content distribution and NEGATIVE for content that is good.  It is not a defintive assessement. It is more a likelyhood to happen. The text is:" + "\n\n" +  text    
+    final_prompt = "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text    
     # Define the system message
-    system_msg = 'You are a content moderator.'
+    system_msg = 'You are a movie critic that read the reviews of movies and decide whether the review is positive or negative.'
     # Define the user message
     user_msg = final_prompt
     # Create a dataset using GPT
