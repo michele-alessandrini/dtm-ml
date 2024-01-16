@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
-bedrock = boto3.client('bedrock' , 'us-west-2', endpoint_url='https://bedrock.us-west-2.amazonaws.com')
+bedrock = boto3.client('bedrock-runtime' , 'us-west-2', endpoint_url='https://bedrock-runtime.us-west-2.amazonaws.com')
 
 def preprocess_text(text):
     # Tokenize the text
@@ -28,9 +28,21 @@ def preprocess_text(text):
     return processed_text
 
 def get_sentiment(text):
-    body = json.dumps({"prompt": "Human: Can you say whether the following text  contains content that must be moderated? Example of that content include but not limited to sexual terms, hate, violence, and weapons. Your answer should be POSITIVE for content that you feel should be moderated or that woudl go against the majority of policies for content distribution and NEGATIVE for content that is good.  It is not a defintive assessement. It is more a likelyhood to happen. The text is:\n\n" + text + "\\n\\nAssistant:","max_tokens_to_sample":300,"temperature":1,"top_k":250,"top_p":0.999,"stop_sequences":["\\n\\nHuman:"],"anthropic_version":"bedrock-2023-05-31"})
+    
+    prompt = "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text,
+
+    body = json.dumps({
+            "prompt": "\n\nHuman: " + prompt +"\n\nAssistant:",
+            "max_tokens_to_sample": 3000,
+            "temperature": 0.1,
+            "top_p": 0.9,
+        })
+    
+    
     modelId = 'anthropic.claude-v2'
-    response = bedrock.invoke_model(body=body, modelId=modelId)    
+    accept = 'application/json'
+    contentType = 'application/json'
+    response = bedrock.invoke_model(body=body, modelId=modelId, accept=accept, contentType=contentType)
     response_body = json.loads(response.get('body').read())
 
     ret_str = response_body.get('completion')
