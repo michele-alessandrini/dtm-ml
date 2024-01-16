@@ -29,7 +29,7 @@ def preprocess_text(text):
 
 def get_sentiment(text):
     
-    prompt = "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text,
+    prompt = "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text
 
     body = json.dumps({
             "prompt": "\n\nHuman: " + prompt +"\n\nAssistant:",
