@@ -1,7 +1,8 @@
 import nltk
 import nltk.corpus
 import pandas as pd
-import openai
+import boto3
+import json
 import config
 import numpy
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -12,8 +13,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
-openai.api_key = config.OPEN_AI_KEY
-org_id = config.OPEN_AI_ORG
+bedrock = boto3.client('bedrock-runtime' , 'us-west-2', endpoint_url='https://bedrock-runtime.us-west-2.amazonaws.com')
 
 def preprocess_text(text):
     # Tokenize the text
@@ -28,17 +28,20 @@ def preprocess_text(text):
     return processed_text
 
 def get_sentiment(text):
-    final_prompt = "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text    
-    # Define the system message
-    system_msg = 'You are a movie critic that read the reviews of movies and decide whether the review is positive or negative.'
-    # Define the user message
-    user_msg = final_prompt
-    # Create a dataset using GPT
-    response = openai.ChatCompletion.create(model="gpt-4-1106-preview",
-                                            messages=[{"role": "system", "content": system_msg},
-                                             {"role": "user", "content": user_msg}])
+        
+    body = json.dumps({
+        "prompt": "Can you say whether the user who wrote the following review liked the movie? Your answer should be include the word POSITIVE if you feel the review is good or the answer shoud include the word NEGATIVE if the user did not like the move.  It is not meant to be a definitive assessement. The review is:" + "\n\n" +  text,
+        "max_gen_len": 128,
+        "temperature": 0.5,
+        "top_p": 0.5
+    })
+    
+    modelId = 'meta.llama2-13b-chat-v1'
+    response = bedrock.invoke_model(body=body, modelId=modelId)
+    response_body = json.loads(response.get('body').read())
 
-    ret_str = response["choices"][0]["message"]["content"]
+    ret_str = response_body["generation"]
+
     moderated = 0
     if "positive" in ret_str.lower():
             moderated= 1
@@ -46,7 +49,7 @@ def get_sentiment(text):
     return moderated
 
 
-df = pd.read_csv('../data/test_data_short.csv')
+df = pd.read_csv('../data/train_data_short.csv')
 
 df['Review'] = df['Review'].apply(preprocess_text)
 df['SentimentPython'] = df['Review'].apply(get_sentiment)

@@ -38,7 +38,7 @@ def get_sentiment(text):
 analyzer = SentimentIntensityAnalyzer()
 
 #df = pd.read_csv('data/sample_short.csv')
-df = pd.read_csv('../data/train_data_short.csv')
+df = pd.read_csv('../data/test_data_short.csv')
 
 df['Review'] = df['Review'].apply(preprocess_text)
 df['SentimentPython'] = df['Review'].apply(get_sentiment)
